@@ -1,4 +1,4 @@
-# piback
+# PiBack
 Utility application to help RaspberryPi (Debian) exit from Emulators with a combination of two keys of your remote controller. It can be configured with 4 remote controllers and 4 key combinations. It can be applied to any application.
 
 There is a bug with EmulationStation initialisation. If you boot you RaspberryPi system and EmulationStation is on boot init process, EmulationStation needs the gamepads linked and working before start, otherwise EmulationStation can't recognise these gamepads (bluetooth) and ask you for setup again.
