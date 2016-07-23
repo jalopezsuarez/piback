@@ -11,7 +11,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,9 +54,20 @@ int main(int argc, char **argv)
 {
     // =======================================================
     
-    INIReader reader("piback.ini");
+    string resource = "piback.ini";
+    if (argc > 3 && strcmp(argv[2], "--ini") == 0)
+    {
+        resource = argv[3];
+    }
+    INIReader reader(resource);
     if (reader.ParseError() < 0)
     {
+        cout << "Usage: " << argv[0] << " --[scan|monitor] --ini <path/file>"
+        << "\nOptions:\n"
+        << "  --scan \t looking for joystick controller"
+        << "  --monitor <path/file> \t run in background monitorize hotkeys"
+        << "  --ini <path/file> \t absolute path to application ini file"
+        << endl;
         exit(1);
     }
     
@@ -107,16 +117,12 @@ int main(int argc, char **argv)
     
     // =======================================================
     
-    //if (argc > 1 && strcmp(argv[1], "--scan") == 0)
-    //else if (argc > 1 && strcmp(argv[1], "--play") == 0)
+    //pid_t process_id = 0;
+    //pid_t sid = 0;
     
-    // -------------------------------------------------------
-    
-    pid_t process_id = 0;
-    pid_t sid = 0;
-    
-    process_id = fork();
-    if (process_id > 0)
+    //process_id = fork();
+    //if (process_id > 0)
+    if (argc > 1 && strcmp(argv[1], "--scan") == 0)
     {
         // =======================================================
         
@@ -151,18 +157,11 @@ int main(int argc, char **argv)
         }
         
         // =======================================================
-        
-        exit(0);
     }
-    else
+    else if (argc > 1 && strcmp(argv[1], "--monitor") == 0)
     {
-        sid = setsid();
-        
-        close(STDIN_FILENO);
-        close(STDOUT_FILENO);
-        close(STDERR_FILENO);
-        
-        if (sid > 0)
+        //sid = setsid();
+        //if (sid > 0)
         {
             
             // =======================================================
@@ -205,7 +204,6 @@ int main(int argc, char **argv)
                         JoystickEvent event;
                         if (inputs[i].sample(&event) && event.isButton())
                         {
-                            
                             if (hotkeys[i].event_a > 0 && hotkeys[i].button_a == event.number)
                             {
                                 hotkeys[i].event_a = 0;
@@ -272,15 +270,11 @@ int main(int argc, char **argv)
                 usleep(10000);
             }
         }
-        else
-        {
-            exit(1);
-        }
         
         // =======================================================
     }
     
-    return 0;
+    return(0);
 }
 
 // =======================================================
@@ -367,4 +361,3 @@ int kill(const char *name)
     free(s);
     return 1;
 }
-
