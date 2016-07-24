@@ -272,7 +272,7 @@ int main(int argc, char **argv)
                     }
                     clock_gettime(CLOCK_MONOTONIC, & tend);
                     delaysec = ((double) tend.tv_sec + 1.0e-9 *tend.tv_nsec) - ((double) tstart.tv_sec + 1.0e-9 *tstart.tv_nsec);
-                    if (delaysec > 1)
+                    if (delaysec > 0.5f)
                     {
                         for (unsigned int i = 0; i < sizeof(applications); i++)
                         {
