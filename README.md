@@ -33,7 +33,7 @@ The numbers shown should change as you move the joysticks around, if so everythi
 
 ### PiBack Configuration
 
-PiBack needs to be configured with a INI file in order to work correctly. The configuration file has 3 sections: 
+PiBack needs to be configured with a INI file in order to work correctly `piback.ini`. The configuration file has 3 sections: 
 
 * Input devices where the gamepad joysticks are connected, this is generic for most of Linux. 
 * The list of applications that will be QUITTED from PiBack when a hotkey is detected. This applications is a list of proccess. To obtain this you can try  `ps aux` in command line to get the name of the process usually it is the same as executable filename.
