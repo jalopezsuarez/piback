@@ -30,7 +30,7 @@ using namespace std;
 // =======================================================
 
 const char* deviceInput[4];
-char **applications;
+char** applications;
 
 struct hotkey {
     int hotkey_a;
@@ -44,8 +44,7 @@ struct hotkey hotkeys[4];
 
 // =======================================================
 
-char* string_as_array(string* str);
-int explode( char * str, char delim, char ***array, int *length);
+char* strchar(string* str);
 int kill(const char *name);
 
 // =======================================================
@@ -60,13 +59,16 @@ int main(int argc, char **argv)
         resource = argv[3];
     }
     INIReader reader(resource);
-    if (reader.ParseError() < 0)
+    
+    // -------------------------------------------------------
+    
+    if (argc < 2 || reader.ParseError() < 0)
     {
         cout << "Usage: " << argv[0] << " --[scan|monitor] --ini <path/file>"
         << "\nOptions:\n"
-        << "  --scan \t looking for joystick controller"
-        << "  --monitor <path/file> \t run in background monitorize hotkeys"
-        << "  --ini <path/file> \t absolute path to application ini file"
+        << "  --scan \t\t looking for joystick controller\n"
+        << "  --monitor \t\t run in background monitorize hotkeys\n"
+        << "  --ini <path/file> \t absolute path to application ini file\n"
         << endl;
         exit(1);
     }
@@ -94,18 +96,33 @@ int main(int argc, char **argv)
     
     // -------------------------------------------------------
     
-    deviceInput[0] = string_as_array(&iniDevice0);
-    deviceInput[1] = string_as_array(&iniDevice1);
-    deviceInput[2] = string_as_array(&iniDevice2);
-    deviceInput[3] = string_as_array(&iniDevice3);
+    deviceInput[0] = strchar(&iniDevice0);
+    deviceInput[1] = strchar(&iniDevice1);
+    deviceInput[2] = strchar(&iniDevice2);
+    deviceInput[3] = strchar(&iniDevice3);
     
     // -------------------------------------------------------
     
     if (!iniApplications.empty())
     {
-        char* stringApplications = string_as_array(&iniApplications);
+        char* stringApplications = strchar(&iniApplications);
+        applications = NULL;
+        
         int count = 0;
-        explode(stringApplications, ',', &applications, &count );
+        char *cursor = strtok(stringApplications, ",");
+        while(cursor != NULL)
+        {
+            if (strlen(cursor) > 0)
+            {
+                applications = (char**) realloc (applications, (count+1) * sizeof(char*));
+                applications[count] = (char*)calloc(strlen(cursor) + 1, sizeof(char));
+                strcpy(applications[count], cursor);
+                count++;
+            }
+            cursor = strtok(NULL, ",");
+        }
+        applications = (char**) realloc(applications, (count+1) * sizeof(char*));
+        applications[count] = NULL;
     }
     
     // -------------------------------------------------------
@@ -166,9 +183,9 @@ int main(int argc, char **argv)
             
             // =======================================================
             
-            close(STDIN_FILENO);
-            close(STDOUT_FILENO);
-            close(STDERR_FILENO);
+            //close(STDIN_FILENO);
+            //close(STDOUT_FILENO);
+            //close(STDERR_FILENO);
             
             // -------------------------------------------------------
             
@@ -235,11 +252,17 @@ int main(int argc, char **argv)
                 
                 // -------------------------------------------------------
                 
-                process =  (hotkeys[0].event_a > 0 && hotkeys[0].event_b > 0 && hotkeys[0].button_a == hotkeys[0].hotkey_a && hotkeys[0].button_b == hotkeys[0].hotkey_b)?1:0;
-                process += (hotkeys[1].event_a > 0 && hotkeys[1].event_b > 0 && hotkeys[1].button_a == hotkeys[1].hotkey_a && hotkeys[1].button_b == hotkeys[1].hotkey_b)?1:0;
-                process += (hotkeys[2].event_a > 0 && hotkeys[2].event_b > 0 && hotkeys[2].button_a == hotkeys[2].hotkey_a && hotkeys[2].button_b == hotkeys[2].hotkey_b)?1:0;
-                process += (hotkeys[3].event_a > 0 && hotkeys[3].event_b > 0 && hotkeys[3].button_a == hotkeys[3].hotkey_a && hotkeys[3].button_b == hotkeys[3].hotkey_b)?1:0;
-                
+                process = 0;
+                for (unsigned int i=0; i<sizeof(hotkeys); i++)
+                {
+                    process += (hotkeys[0].event_a > 0 && hotkeys[0].event_b > 0 && hotkeys[0].button_a == hotkeys[i].hotkey_a && hotkeys[0].button_b == hotkeys[i].hotkey_b)?1:0;
+                    process += (hotkeys[1].event_a > 0 && hotkeys[1].event_b > 0 && hotkeys[1].button_a == hotkeys[i].hotkey_a && hotkeys[1].button_b == hotkeys[i].hotkey_b)?1:0;
+                    process += (hotkeys[2].event_a > 0 && hotkeys[2].event_b > 0 && hotkeys[2].button_a == hotkeys[i].hotkey_a && hotkeys[2].button_b == hotkeys[i].hotkey_b)?1:0;
+                    process += (hotkeys[3].event_a > 0 && hotkeys[3].event_b > 0 && hotkeys[3].button_a == hotkeys[i].hotkey_a && hotkeys[3].button_b == hotkeys[i].hotkey_b)?1:0;                    
+                    if (process > 0)
+                        break;
+                }
+
                 // -------------------------------------------------------
                 
                 if (process > 0)
@@ -249,10 +272,19 @@ int main(int argc, char **argv)
                     }
                     clock_gettime(CLOCK_MONOTONIC, & tend);
                     delaysec = ((double) tend.tv_sec + 1.0e-9 *tend.tv_nsec) - ((double) tstart.tv_sec + 1.0e-9 *tstart.tv_nsec);
-                    if (delaysec > 1) {
+                    if (delaysec > 1)
+                    {
                         for (unsigned int i = 0; i < sizeof(applications); i++)
                         {
-                            kill(applications[i]);
+                            if (applications[i] != NULL && strlen(applications[i]) > 0)
+                                kill(applications[i]);
+                        }
+                        for (int i=0; i<4; i++)
+                        {
+                            hotkeys[i].event_a = 0;
+                            hotkeys[i].event_b = 0;
+                            hotkeys[i].button_a = 0;
+                            hotkeys[i].button_b = 0;
                         }
                     }
                 }
@@ -270,50 +302,27 @@ int main(int argc, char **argv)
                 usleep(10000);
             }
         }
-        
-        // =======================================================
     }
+    
+    // =======================================================
+    
+    for (unsigned int i = 0; i < sizeof(applications); i++)
+    {
+        if (applications[i] != NULL && strlen(applications[i]) > 0)
+            free(applications[i]);
+    }
+    free(applications);
+    
+    // -------------------------------------------------------
     
     return(0);
 }
 
 // =======================================================
 
-char* string_as_array(string* str)
+char* strchar(string* str)
 {
     return str->empty() ? NULL : &*str->begin();
-}
-
-int explode( char * str, char delim, char ***array, int *length )
-{
-    char *p;
-    char **res;
-    int count=0;
-    int k=0;
-    
-    p = str;
-    // Count occurance of delim in string
-    while( (p=strchr(p,delim)) != NULL ) {
-        *p = 0; // Null terminate the deliminator.
-        p++; // Skip past our new null
-        count++;
-    }
-    
-    // allocate dynamic array
-    res = (char**)calloc( 1, count * sizeof(char *));
-    if( !res ) return -1;
-    
-    p = str;
-    for( k=0; k<count; k++ ){
-        if( *p ) res[k] = p;  // Copy start of string
-        p = strchr(p, 0 );    // Look for next null
-        p++; // Start of next string
-    }
-    
-    *array = res;
-    *length = count;
-    
-    return 0;
 }
 
 int kill(const char *name)
