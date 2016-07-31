@@ -19,10 +19,15 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <math.h>
+#include <libgen.h>
 #include <SDL2/SDL.h>
 
-#include <iostream>
 #include "joystick.hh"
+
+#include <algorithm>
+#include <iostream>
+using namespace std;
 
 #define PATH_MAX 512
 
@@ -43,49 +48,29 @@ int main ( int argc, char** argv )
     
     SDL_ShowCursor(SDL_DISABLE);
     
+    // -------------------------------------------------------
+    
     char datadir[PATH_MAX];
-    
     memset(datadir, '\0', PATH_MAX);
-    strncpy(datadir, argv[0], sizeof(datadir));
-    strncat(datadir, "/piscan0.bmp", sizeof(datadir));
-    SDL_Surface *bmp0 = SDL_LoadBMP(datadir);
-    if (bmp0 == NULL){
-        std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-    
-    memset(datadir, '\0', PATH_MAX);
-    strncpy(datadir, argv[0], sizeof(datadir));
-    strncat(datadir, "/piscan1.bmp", sizeof(datadir));
-    SDL_Surface *bmp1 = SDL_LoadBMP(datadir);
-    if (bmp1 == NULL){
-        std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-    
-    memset(datadir, '\0', PATH_MAX);
-    strncpy(datadir, argv[0], sizeof(datadir));
-    strncat(datadir, "/piscan2.bmp", sizeof(datadir));
-    SDL_Surface *bmp2 = SDL_LoadBMP(datadir);
-    if (bmp2 == NULL){
-        std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-    
-    memset(datadir, '\0', PATH_MAX);
-    strncpy(datadir, argv[0], sizeof(datadir));
-    strncat(datadir, "/piscan3.bmp", sizeof(datadir));
-    SDL_Surface *bmp3 = SDL_LoadBMP(datadir);
-    if (bmp3 == NULL){
-        std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
+    ssize_t len = ::readlink("/proc/self/exe", datadir, sizeof(datadir));
+    datadir[len] = '\0';
+    const char *resource[4] = {"/piscan0.bmp", "/piscan1.bmp", "/piscan2.bmp", "/piscan3.bmp"};
     
     SDL_Surface *bmp[4];
-    bmp[0] = bmp0;
-    bmp[1] = bmp1;
-    bmp[2] = bmp2;
-    bmp[3] = bmp3;
+    for (int i=0; i<4; i++)
+    {
+        strncat(dirname(datadir), resource[i], sizeof(datadir));
+        SDL_Surface *file = SDL_LoadBMP(datadir);
+        if (file == NULL){
+            std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
+            SDL_DestroyWindow(win);
+            SDL_Quit();
+            return 1;
+        }
+        bmp[i] = file;
+    }
+    
+    // -------------------------------------------------------
     
     SDL_DisplayMode dm;
     if (SDL_GetDesktopDisplayMode(0, &dm) != 0)
@@ -102,6 +87,8 @@ int main ( int argc, char** argv )
     location.y = (h - 600) / 2;
     location.w = 600;
     location.h = 600;
+    
+    // -------------------------------------------------------
     
     int running = 1;
     int joystick = 0;
@@ -155,10 +142,10 @@ int main ( int argc, char** argv )
         
     }
     
-    SDL_FreeSurface( bmp0 );
-    SDL_FreeSurface( bmp1 );
-    SDL_FreeSurface( bmp2 );
-    SDL_FreeSurface( bmp3 );
+    // -------------------------------------------------------
+    
+    for (int i=0; i<4; i++)
+        SDL_FreeSurface( bmp[i] );
     
     SDL_DestroyWindow(win);
     SDL_Quit();
