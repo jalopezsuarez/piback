@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     string resource = "piback.ini";
     if (argc > 2 && strcmp(argv[1], "--ini") == 0)
     {
-        resource = argv[3];
+        resource = argv[2];
     }
     INIReader reader(resource);
     

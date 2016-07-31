@@ -24,6 +24,8 @@
 #include <iostream>
 #include "joystick.hh"
 
+#define PATH_MAX 512
+
 int main ( int argc, char** argv )
 {
     SDL_Event event;
@@ -41,22 +43,39 @@ int main ( int argc, char** argv )
     
     SDL_ShowCursor(SDL_DISABLE);
     
-    SDL_Surface *bmp0 = SDL_LoadBMP("piscan0.bmp");
+    char datadir[PATH_MAX];
+    
+    memset(datadir, '\0', PATH_MAX);
+    strncpy(datadir, argv[0], sizeof(datadir));
+    strncat(datadir, "/piscan0.bmp", sizeof(datadir));
+    SDL_Surface *bmp0 = SDL_LoadBMP(datadir);
     if (bmp0 == NULL){
         std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
         return 1;
     }
-    SDL_Surface *bmp1 = SDL_LoadBMP("piscan1.bmp");
+    
+    memset(datadir, '\0', PATH_MAX);
+    strncpy(datadir, argv[0], sizeof(datadir));
+    strncat(datadir, "/piscan1.bmp", sizeof(datadir));
+    SDL_Surface *bmp1 = SDL_LoadBMP(datadir);
     if (bmp1 == NULL){
         std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
         return 1;
     }
-    SDL_Surface *bmp2 = SDL_LoadBMP("piscan2.bmp");
+    
+    memset(datadir, '\0', PATH_MAX);
+    strncpy(datadir, argv[0], sizeof(datadir));
+    strncat(datadir, "/piscan2.bmp", sizeof(datadir));
+    SDL_Surface *bmp2 = SDL_LoadBMP(datadir);
     if (bmp2 == NULL){
         std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
         return 1;
     }
-    SDL_Surface *bmp3 = SDL_LoadBMP("piscan3.bmp");
+    
+    memset(datadir, '\0', PATH_MAX);
+    strncpy(datadir, argv[0], sizeof(datadir));
+    strncat(datadir, "/piscan3.bmp", sizeof(datadir));
+    SDL_Surface *bmp3 = SDL_LoadBMP(datadir);
     if (bmp3 == NULL){
         std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
         return 1;
