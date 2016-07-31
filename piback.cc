@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     // =======================================================
     
     string resource = "piback.ini";
-    if (argc > 3 && strcmp(argv[2], "--ini") == 0)
+    if (argc > 2 && strcmp(argv[1], "--ini") == 0)
     {
         resource = argv[3];
     }
@@ -62,12 +62,10 @@ int main(int argc, char **argv)
     
     // -------------------------------------------------------
     
-    if (argc < 2 || reader.ParseError() < 0)
+    if (argc < 1 || reader.ParseError() < 0)
     {
-        cout << "Usage: " << argv[0] << " --[scan|monitor] --ini <path/file>"
+        cout << "Usage: " << argv[0] << " --ini <path/file>"
         << "\nOptions:\n"
-        << "  --scan \t\t looking for joystick controller\n"
-        << "  --monitor \t\t run in background monitorize hotkeys\n"
         << "  --ini <path/file> \t absolute path to application ini file\n"
         << endl;
         exit(1);
@@ -132,176 +130,108 @@ int main(int argc, char **argv)
     hotkeys[2] = {iniHotkey2ButtonA,iniHotkey2ButtonB,0,0,0,0};
     hotkeys[3] = {iniHotkey3ButtonA,iniHotkey3ButtonB,0,0,0,0};
     
+    
     // =======================================================
     
-    //pid_t process_id = 0;
-    //pid_t sid = 0;
+    setbuf(stdout, NULL);
     
-    //process_id = fork();
-    //if (process_id > 0)
-    if (argc > 1 && strcmp(argv[1], "--scan") == 0)
+    system("setterm -clear");
+    std::cout << "\x1B[2J\x1B[H";
+    cout << "\033[2J\033[1;1H";
+    write(1,"\E[H\E[2J",7);
+    
+    system("setterm -cursor off");
+    printf("\e[?25l");
+    
+    system("setterm -foreground black");
+    printf("\033[30m");
+    
+    // -------------------------------------------------------
+    
+    Joystick inputs[4];
+    int process = 0;
+    
+    // -------------------------------------------------------
+    
+    Joystick input0(deviceInput[0]);
+    Joystick input1(deviceInput[1]);
+    Joystick input2(deviceInput[2]);
+    Joystick input3(deviceInput[3]);
+    
+    inputs[0] = input0;
+    inputs[1] = input1;
+    inputs[2] = input2;
+    inputs[3] = input3;
+    
+    // -------------------------------------------------------
+    
+    while (1)
     {
-        // =======================================================
-        
-        setbuf(stdout, NULL);
-        
         // -------------------------------------------------------
         
-        printf("\n\033[0m[ \033[1;36mWAIT\033[0m ] Looking for joystick controller...");
-        
-        int inputFound = 0;
-        while (inputFound <= 0)
+        for (int i=0; i<4; i++)
         {
-            Joystick input0(deviceInput[0]);
-            Joystick input1(deviceInput[1]);
-            Joystick input2(deviceInput[2]);
-            Joystick input3(deviceInput[3]);
-            
-            inputFound = input0.isFound()?1:0;
-            inputFound += input1.isFound()?1:0;
-            inputFound += input2.isFound()?1:0;
-            inputFound += input3.isFound()?1:0;
-            
-            if (inputFound <= 0)
+            if (inputs[i].isFound())
             {
-                usleep(1000000);
-                printf(".");
+                JoystickEvent event;
+                if (inputs[i].sample(&event) && event.isButton())
+                {
+                    if (hotkeys[i].event_a > 0 && hotkeys[i].button_a == event.number)
+                    {
+                        hotkeys[i].event_a = 0;
+                        hotkeys[i].button_a = 0;
+                    }
+                    if (hotkeys[i].event_b > 0 && hotkeys[i].button_b == event.number)
+                    {
+                        hotkeys[i].event_b = 0;
+                        hotkeys[i].button_b = 0;
+                    }
+                    if (hotkeys[i].event_a <= 0)
+                    {
+                        hotkeys[i].event_a = event.value == 0?0:1;
+                        hotkeys[i].button_a = event.value == 0?0:event.number;
+                    }
+                    else if (hotkeys[i].event_b <= 0)
+                    {
+                        hotkeys[i].event_b = event.value == 0?0:1;
+                        hotkeys[i].button_b = event.value == 0?0:event.number;
+                    }
+                }
             }
             else
             {
-                printf("\n\033[0m[  \033[1;32mOK\033[0m  \033[0m] Joystick controller found!\033[0m\n");
+                Joystick input(deviceInput[i]);
+                inputs[i] = input;
             }
         }
         
-        // =======================================================
-    }
-    else if (argc > 1 && strcmp(argv[1], "--monitor") == 0)
-    {
-        //sid = setsid();
-        //if (sid > 0)
+        // -------------------------------------------------------
+        
+        process = 0;
+        for (unsigned int i=0; i<sizeof(hotkeys); i++)
         {
-            
-            // =======================================================
-            
-            //close(STDIN_FILENO);
-            //close(STDOUT_FILENO);
-            //close(STDERR_FILENO);
-            
-            // -------------------------------------------------------
-            
-            Joystick inputs[4];
-            int process = 0;
-            
-            struct timespec tstart = {0,0};
-            struct timespec tend = {0,0};
-            double delaysec = 0;
-            
-            // -------------------------------------------------------
-            
-            Joystick input0(deviceInput[0]);
-            Joystick input1(deviceInput[1]);
-            Joystick input2(deviceInput[2]);
-            Joystick input3(deviceInput[3]);
-            
-            inputs[0] = input0;
-            inputs[1] = input1;
-            inputs[2] = input2;
-            inputs[3] = input3;
-            
-            // -------------------------------------------------------
-            
-            while (1)
+            process += (hotkeys[0].event_a > 0 && hotkeys[0].event_b > 0 && hotkeys[0].button_a == hotkeys[i].hotkey_a && hotkeys[0].button_b == hotkeys[i].hotkey_b)?1:0;
+            process += (hotkeys[1].event_a > 0 && hotkeys[1].event_b > 0 && hotkeys[1].button_a == hotkeys[i].hotkey_a && hotkeys[1].button_b == hotkeys[i].hotkey_b)?1:0;
+            process += (hotkeys[2].event_a > 0 && hotkeys[2].event_b > 0 && hotkeys[2].button_a == hotkeys[i].hotkey_a && hotkeys[2].button_b == hotkeys[i].hotkey_b)?1:0;
+            process += (hotkeys[3].event_a > 0 && hotkeys[3].event_b > 0 && hotkeys[3].button_a == hotkeys[i].hotkey_a && hotkeys[3].button_b == hotkeys[i].hotkey_b)?1:0;
+            if (process > 0)
+                break;
+        }
+        
+        // -------------------------------------------------------
+        
+        if (process > 0)
+        {
+            for (unsigned int i = 0; i < sizeof(applications); i++)
             {
-                // -------------------------------------------------------
-                
-                for (int i=0; i<4; i++)
-                {
-                    if (inputs[i].isFound())
-                    {
-                        JoystickEvent event;
-                        if (inputs[i].sample(&event) && event.isButton())
-                        {
-                            if (hotkeys[i].event_a > 0 && hotkeys[i].button_a == event.number)
-                            {
-                                hotkeys[i].event_a = 0;
-                                hotkeys[i].button_a = 0;
-                            }
-                            if (hotkeys[i].event_b > 0 && hotkeys[i].button_b == event.number)
-                            {
-                                hotkeys[i].event_b = 0;
-                                hotkeys[i].button_b = 0;
-                            }
-                            if (hotkeys[i].event_a <= 0)
-                            {
-                                hotkeys[i].event_a = event.value == 0?0:1;
-                                hotkeys[i].button_a = event.value == 0?0:event.number;
-                            }
-                            else if (hotkeys[i].event_b <= 0)
-                            {
-                                hotkeys[i].event_b = event.value == 0?0:1;
-                                hotkeys[i].button_b = event.value == 0?0:event.number;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Joystick input(deviceInput[i]);
-                        inputs[i] = input;
-                    }
-                }
-                
-                // -------------------------------------------------------
-                
-                process = 0;
-                for (unsigned int i=0; i<sizeof(hotkeys); i++)
-                {
-                    process += (hotkeys[0].event_a > 0 && hotkeys[0].event_b > 0 && hotkeys[0].button_a == hotkeys[i].hotkey_a && hotkeys[0].button_b == hotkeys[i].hotkey_b)?1:0;
-                    process += (hotkeys[1].event_a > 0 && hotkeys[1].event_b > 0 && hotkeys[1].button_a == hotkeys[i].hotkey_a && hotkeys[1].button_b == hotkeys[i].hotkey_b)?1:0;
-                    process += (hotkeys[2].event_a > 0 && hotkeys[2].event_b > 0 && hotkeys[2].button_a == hotkeys[i].hotkey_a && hotkeys[2].button_b == hotkeys[i].hotkey_b)?1:0;
-                    process += (hotkeys[3].event_a > 0 && hotkeys[3].event_b > 0 && hotkeys[3].button_a == hotkeys[i].hotkey_a && hotkeys[3].button_b == hotkeys[i].hotkey_b)?1:0;                    
-                    if (process > 0)
-                        break;
-                }
-
-                // -------------------------------------------------------
-                
-                if (process > 0)
-                {
-                    if (tstart.tv_sec == 0 && tstart.tv_nsec == 0) {
-                        clock_gettime(CLOCK_MONOTONIC, & tstart);
-                    }
-                    clock_gettime(CLOCK_MONOTONIC, & tend);
-                    delaysec = ((double) tend.tv_sec + 1.0e-9 *tend.tv_nsec) - ((double) tstart.tv_sec + 1.0e-9 *tstart.tv_nsec);
-                    if (delaysec > 0.5f)
-                    {
-                        for (unsigned int i = 0; i < sizeof(applications); i++)
-                        {
-                            if (applications[i] != NULL && strlen(applications[i]) > 0)
-                                kill(applications[i]);
-                        }
-                        for (int i=0; i<4; i++)
-                        {
-                            hotkeys[i].event_a = 0;
-                            hotkeys[i].event_b = 0;
-                            hotkeys[i].button_a = 0;
-                            hotkeys[i].button_b = 0;
-                        }
-                    }
-                }
-                else
-                {
-                    tstart.tv_nsec = 0;
-                    tstart.tv_sec = 0;
-                    tend.tv_nsec = 0;
-                    tend.tv_sec = 0;
-                    delaysec = 0;
-                }
-                
-                // -------------------------------------------------------
-                
-                usleep(10000);
+                if (applications[i] != NULL && strlen(applications[i]) > 0)
+                    kill(applications[i]);
             }
         }
+        
+        // -------------------------------------------------------
+        
+        usleep(1000);
     }
     
     // =======================================================
