@@ -130,7 +130,6 @@ int main(int argc, char **argv)
     hotkeys[2] = {iniHotkey2ButtonA,iniHotkey2ButtonB,0,0,0,0};
     hotkeys[3] = {iniHotkey3ButtonA,iniHotkey3ButtonB,0,0,0,0};
     
-    
     // =======================================================
     
     setbuf(stdout, NULL);
@@ -169,7 +168,7 @@ int main(int argc, char **argv)
     {
         // -------------------------------------------------------
         
-        for (int i=0; i<4; i++)
+        for (int i = 0; i < 4; i++)
         {
             if (inputs[i].isFound())
             {
@@ -208,7 +207,7 @@ int main(int argc, char **argv)
         // -------------------------------------------------------
         
         process = 0;
-        for (unsigned int i=0; i<sizeof(hotkeys); i++)
+        for (int i = 0; i < 4; i++)
         {
             process += (hotkeys[0].event_a > 0 && hotkeys[0].event_b > 0 && hotkeys[0].button_a == hotkeys[i].hotkey_a && hotkeys[0].button_b == hotkeys[i].hotkey_b)?1:0;
             process += (hotkeys[1].event_a > 0 && hotkeys[1].event_b > 0 && hotkeys[1].button_a == hotkeys[i].hotkey_a && hotkeys[1].button_b == hotkeys[i].hotkey_b)?1:0;
@@ -227,11 +226,18 @@ int main(int argc, char **argv)
                 if (applications[i] != NULL && strlen(applications[i]) > 0)
                     kill(applications[i]);
             }
+            for (int i = 0; i < 4; i++)
+            {
+                hotkeys[i].event_a = 0;
+                hotkeys[i].event_b = 0;
+                hotkeys[i].button_a = 0;
+                hotkeys[i].button_b = 0;
+            }
         }
         
         // -------------------------------------------------------
         
-        usleep(1000);
+        usleep(10000);
     }
     
     // =======================================================
