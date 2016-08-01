@@ -71,7 +71,17 @@ int main(int argc, char **argv)
         exit(1);
     }
     
-    // -------------------------------------------------------
+    // =======================================================
+    {
+        setbuf(stdout, NULL);
+        write(1,"\E[H\E[2J",7);
+        cout << "\033[H\033[2J";
+        cout << "\033[2J\033[1;1H";
+        cout << "\x1B[2J\x1B[H";
+        cout << "\x1B[2J";
+        cout << "\x1B[0;0H";
+    }
+    // =======================================================
     
     string iniDevice0 = reader.Get("device", "device0_input", "/dev/input/js0");
     string iniDevice1 = reader.Get("device", "device1_input", "/dev/input/js1");
@@ -131,21 +141,6 @@ int main(int argc, char **argv)
     hotkeys[3] = {iniHotkey3ButtonA,iniHotkey3ButtonB,0,0,0,0};
     
     // =======================================================
-    
-    setbuf(stdout, NULL);
-    
-    system("setterm -clear");
-    std::cout << "\x1B[2J\x1B[H";
-    cout << "\033[2J\033[1;1H";
-    write(1,"\E[H\E[2J",7);
-    
-    system("setterm -cursor off");
-    printf("\e[?25l");
-    
-    system("setterm -foreground black");
-    printf("\033[30m");
-    
-    // -------------------------------------------------------
     
     Joystick inputs[4];
     int process = 0;
@@ -254,6 +249,7 @@ int main(int argc, char **argv)
     return(0);
 }
 
+// ~ Methods
 // =======================================================
 
 char* strchar(string* str)

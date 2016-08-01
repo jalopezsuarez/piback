@@ -27,6 +27,10 @@
 #include "joystick.hh"
 #include "INIReader.h"
 
+#include <iostream>
+#include <fstream>
+using namespace std;
+
 #define PROG_NAME "c2h2_spi_kbd"
 
 int fire_key(__u16);
@@ -39,6 +43,16 @@ static int uinputfd = -1;
 
 int main(int argc, char **argv)
 {    
+    // =======================================================
+    {
+        setbuf(stdout, NULL);
+        write(1,"\E[H\E[2J",7);
+        cout << "\033[H\033[2J";
+        cout << "\033[2J\033[1;1H";
+        cout << "\x1B[2J\x1B[H";
+        cout << "\x1B[2J";
+        cout << "\x1B[0;0H";
+    }
     // =======================================================
     
     Joystick input0("/dev/input/js0");
@@ -94,6 +108,9 @@ int main(int argc, char **argv)
     
     exit(0);
 }
+
+// ~ Methods
+// =======================================================
 
 int fire_key(__u16 key){
     uinputfd = setup_uinputfd("pikeys");
