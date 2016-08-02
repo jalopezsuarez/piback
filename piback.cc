@@ -192,11 +192,6 @@ int main(int argc, char **argv)
                     }
                 }
             }
-            else
-            {
-                Joystick input(deviceInput[i]);
-                inputs[i] = input;
-            }
         }
         
         // -------------------------------------------------------
