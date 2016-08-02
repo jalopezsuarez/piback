@@ -87,8 +87,9 @@ class Joystick
 {
 private:
   void openPath(std::string devicePath);
-  
-  int _fd;
+
+  int _fd = -1;
+  std::string _device;
   
 public:
   ~Joystick();
@@ -108,7 +109,7 @@ public:
    * Initialises an instance for the joystick device specified.
    */
   Joystick(std::string devicePath);
- 
+    
   /**
    * Returns true if the joystick was found and may be used, otherwise false.
    */
@@ -119,6 +120,7 @@ public:
    * from the joystick. Returns true if data is available, otherwise false.
    */
   bool sample(JoystickEvent* event);
+
 };
 
 #endif

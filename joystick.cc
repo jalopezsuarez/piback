@@ -40,7 +40,8 @@ Joystick::Joystick(std::string devicePath)
 
 void Joystick::openPath(std::string devicePath)
 {
-  _fd = open(devicePath.c_str(), O_RDONLY | O_NONBLOCK);
+    _fd = open(devicePath.c_str(), O_RDONLY | O_NONBLOCK);
+    _device = devicePath;
 }
 
 bool Joystick::sample(JoystickEvent* event)
@@ -57,7 +58,10 @@ bool Joystick::sample(JoystickEvent* event)
 
 bool Joystick::isFound()
 {
-  return _fd >= 0;
+  bool found = _fd >= 0;
+  if (!found)
+    openPath(_device);
+  return found;
 }
 
 Joystick::~Joystick()

@@ -100,6 +100,13 @@ int main ( int argc, char** argv )
     location.w = 600;
     location.h = 600;
     
+    // =======================================================
+    
+    Joystick input0(0);
+    Joystick input1(1);
+    Joystick input2(2);
+    Joystick input3(3);
+    
     // -------------------------------------------------------
     
     int running = 1;
@@ -137,11 +144,6 @@ int main ( int argc, char** argv )
         
         // -------------------------------------------------------
         
-        Joystick input0(0);
-        Joystick input1(1);
-        Joystick input2(2);
-        Joystick input3(3);
-        
         joystick = input0.isFound()?1:0;
         joystick += input1.isFound()?1:0;
         joystick += input2.isFound()?1:0;
@@ -154,7 +156,7 @@ int main ( int argc, char** argv )
         
     }
     
-    // -------------------------------------------------------
+    // =======================================================
     
     for (int i=0; i<4; i++)
         SDL_FreeSurface( bmp[i] );

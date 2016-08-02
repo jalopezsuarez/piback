@@ -42,7 +42,7 @@ void write_uinput(__u16, __u16, __s32);
 static int uinputfd = -1;
 
 int main(int argc, char **argv)
-{    
+{
     // =======================================================
     {
         setbuf(stdout, NULL);
@@ -55,8 +55,8 @@ int main(int argc, char **argv)
     }
     // =======================================================
     
-    Joystick input0("/dev/input/js0");
-        
+    Joystick input0(0);
+    
     while (1)
     {
         usleep(1000);
@@ -64,14 +64,14 @@ int main(int argc, char **argv)
         if (input0.isFound())
         {
             JoystickEvent event;
-            if (input0.sample(&event) && event.isButton())
+            if (input0.sample(&event) && event.isButton() && !event.isInitialState())
             {
                 if (event.value > 0)
                 {
                     switch (event.number)
                     {
                         case 4:
-                            // ps3 up                            
+                            // ps3 up
                             fire_key(KEY_UP);
                             break;
                         case 6:
