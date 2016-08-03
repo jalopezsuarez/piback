@@ -12,9 +12,9 @@ When a user logs in, environment variables are set from various places.  That in
 Autostart EmulationStation with PiBack on RaspberryPi boot startup. Add the follow to the end of the file `/etc/profile`:
 
 ```
-[ -n "${SSH_CONNECTION}" ] || /vemu/piback/piback --scan --ini /vemu/piback/piback.ini
-[ -n "${SSH_CONNECTION}" ] || nohup /vemu/piback/piback --monitor --ini /vemu/piback/piback.ini > /dev/null 2>&1 &
-[ -n "${SSH_CONNECTION}" ] || emulationstation --no-exit > /dev/null 2>&1
+[ -n "${SSH_CONNECTION}" ] || /vemu/piback/piscan
+[ -n "${SSH_CONNECTION}" ] || nohup /vemu/piback/piback --ini /vemu/piback/piback.ini >/dev/null 2>&1 &
+[ -n "${SSH_CONNECTION}" ] || emulationstation > /dev/null 2>&1
 ```
 
 ###  Gamepad Controller (Mapping Codes)
