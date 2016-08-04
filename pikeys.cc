@@ -154,7 +154,7 @@ int setup_uinputfd(const char *name){
     if (fd == -1) {
         fd = open("/dev/uinput", O_RDWR);
         if (fd == -1) {
-            fd = open("/dev/misc/uinput", O_RDWR);
+            fd = open("/dev/input/event", O_RDWR);
             if (fd == -1) {
                 fprintf(stderr, "could not open %s\n", "uinput");
                 perror(NULL);
