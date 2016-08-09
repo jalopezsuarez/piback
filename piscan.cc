@@ -76,6 +76,7 @@ int main ( int argc, char** argv )
     
     char datadir[PATH_MAX];
     memset(datadir, '\0', PATH_MAX);
+    
     ssize_t len = ::readlink("/proc/self/exe", datadir, sizeof(datadir));
     datadir[len] = '\0';
     const char *resource[4] = {"/piscan0.bmp", "/piscan1.bmp", "/piscan2.bmp", "/piscan3.bmp"};
@@ -117,7 +118,9 @@ int main ( int argc, char** argv )
     int fontHeight = 18;
     
     TTF_Init();
-    TTF_Font* font = TTF_OpenFont("source.ttf", fontHeight);
+    
+    strncat(dirname(datadir), "/source.ttf", sizeof(datadir));
+    TTF_Font* font = TTF_OpenFont(datadir, fontHeight);
     
     SDL_Color fColor;
     fColor.r = 255;
@@ -232,5 +235,4 @@ int main ( int argc, char** argv )
     
     return 0;
 }
-
 
