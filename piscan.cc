@@ -18,10 +18,22 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
+#include <assert.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <stdio.h>
 #include <unistd.h>
 #include <math.h>
 #include <libgen.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "joystick.hh"
 
@@ -102,6 +114,60 @@ int main ( int argc, char** argv )
     
     // =======================================================
     
+    int fontHeight = 18;
+    
+    TTF_Init();
+    TTF_Font* font = TTF_OpenFont("source.ttf", fontHeight);
+    
+    SDL_Color fColor;
+    fColor.r = 255;
+    fColor.g = 255;
+    fColor.b = 255;
+    
+    SDL_Color bColor;
+    bColor.r = 0;
+    bColor.g = 0;
+    bColor.b = 0;
+    
+    SDL_Rect fontRect;
+    fontRect.x = 20;
+    fontRect.y = 20;
+    
+    // -------------------------------------------------------
+    
+    {
+        static struct ifreq ifreqs[32];
+        struct ifconf ifconf;
+        memset(&ifconf, 0, sizeof(ifconf));
+        ifconf.ifc_req = ifreqs;
+        ifconf.ifc_len = sizeof(ifreqs);
+        int sd = socket(PF_INET, SOCK_STREAM, 0);
+        if(sd >= 0)
+        {
+            int r = ioctl(sd, SIOCGIFCONF, (char *)&ifconf);
+            assert(r == 0);
+            if (r == 0)
+            {
+                char interfaces[256];
+                for(int i = 0; i < (int)(ifconf.ifc_len/sizeof(struct ifreq)); ++i)
+                {
+                    memset(interfaces, 0, sizeof(interfaces));
+                    sprintf(interfaces, "%s (%s)", inet_ntoa(((struct sockaddr_in *)&ifreqs[i].ifr_addr)->sin_addr), ifreqs[i].ifr_name);
+                    {
+                        SDL_Surface* fontSurface = TTF_RenderUTF8_Shaded(font, interfaces, fColor, bColor);
+                        SDL_BlitSurface(fontSurface, NULL, SDL_GetWindowSurface(win), &fontRect);
+                        SDL_UpdateWindowSurface(win);
+                        SDL_FreeSurface(fontSurface);
+                        fontRect.y += fontHeight + (fontHeight/3);
+                    }
+                }
+            }
+        }
+        close(sd);
+    }
+    
+    // =======================================================
+    
     Joystick input0(0);
     Joystick input1(1);
     Joystick input2(2);
@@ -159,10 +225,12 @@ int main ( int argc, char** argv )
     // =======================================================
     
     for (int i=0; i<4; i++)
-        SDL_FreeSurface( bmp[i] );
+        SDL_FreeSurface(bmp[i]);
     
     SDL_DestroyWindow(win);
     SDL_Quit();
     
     return 0;
 }
+
+
