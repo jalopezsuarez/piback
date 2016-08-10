@@ -111,12 +111,12 @@ int main(int argc, char **argv)
     
     // -------------------------------------------------------
     
+    int count = 0;     
     if (!iniApplications.empty())
     {
         char* stringApplications = strchar(&iniApplications);
         applications = NULL;
-        
-        int count = 0;
+
         char *cursor = strtok(stringApplications, ",");
         while(cursor != NULL)
         {
@@ -211,7 +211,7 @@ int main(int argc, char **argv)
         
         if (process > 0)
         {
-            for (unsigned int i = 0; i < sizeof(applications); i++)
+            for (int i = 0; i < count; i++)
             {
                 if (applications[i] != NULL && strlen(applications[i]) > 0)
                     kill(applications[i]);
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
     
     // =======================================================
     
-    for (unsigned int i = 0; i < sizeof(applications); i++)
+    for (int i = 0; i < count; i++)
     {
         if (applications[i] != NULL && strlen(applications[i]) > 0)
             free(applications[i]);
